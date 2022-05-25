@@ -9,6 +9,7 @@ from keras.constraints import maxnorm
 from keras.utils import np_utils
 from keras.datasets import cifar10
 from PIL import Image
+from glob import glob
 from skimage import transform
 
 
@@ -27,10 +28,11 @@ class Network:
             "This image most likely belongs to {} with a {:.2f} percent confidence."
             .format(self.class_names[numpy.argmax(score)], 100 * numpy.max(score))
         )
+        return self.class_names[numpy.argmax(score)]
 
     def learn_model(self):
-        seed = 21
-        numpy.random.seed(seed)
+        #seed = 21
+        #numpy.random.seed(seed)
 
         train_ds = tf.keras.utils.image_dataset_from_directory(
             'Z:\\Projects\\Neuron\\resources\\img\\cars_train',
@@ -51,7 +53,7 @@ class Network:
         )
 
         class_names = train_ds.class_names
-        print(class_names)
+        #print(class_names)
 
         self.class_names = class_names
 
@@ -105,21 +107,21 @@ class Network:
 
         model.summary()
 
-        #callbacks = [
-            #keras.callbacks.EarlyStopping(
-                #monitor='accuracy',
-                #min_delta=0.9,
-                #patience=2,
-                #verbose=1
-            #)
-        #]
+        callbacks = [
+            keras.callbacks.EarlyStopping(
+                monitor='accuracy',
+                min_delta=0.1,
+                patience=2,
+                verbose=1
+            )
+        ]
 
         model.fit(
             train_ds,
             validation_data=val_ds,
             #batch_size=64,
-            epochs=10,
-            #callbacks = callbacks
+            epochs=25,
+            callbacks = callbacks
         )
 
         # model = Sequential()
@@ -181,13 +183,7 @@ class Network:
             'Z:\\Projects\\Neuron\\resources\\save')
 
     def load_model(self):
-        self.main_model = keras.models.load_model(
+        self.main_model = tf.keras.models.load_model(
             'Z:\\Projects\\Neuron\\resources\\load')
+        self.class_names = self.main_model.class_names
         print('Сеть загружена')
-
-    def get_model(self):
-        inputs = keras.Input(shape=(32,))
-        outputs = keras.layers.Dense(1)(inputs)
-        model = keras.Model(inputs, outputs)
-        model.compile(optimizer="adam", loss="mean_squared_error")
-        self.main_model = model
